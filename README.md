@@ -12,137 +12,121 @@
 [![Version](https://img.shields.io/badge/version-1.0.0-00d8ff.svg)](https://github.com/ishasonaria/pathhawk)
 [![Developer](https://img.shields.io/badge/developer-ISHA%20SONARIA-00ff88.svg)](https://github.com/ishasonaria)
 [![Organization](https://img.shields.io/badge/organization-Isha%20Sonaria%20Security%20Tools-white.svg)](https://github.com/ishasonaria)
+[![CLI Only](https://img.shields.io/badge/architecture-100%25%20CLI%20Only-cyan.svg)](https://github.com/ishasonaria/pathhawk)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 > **Tagline:** *Discover. Enumerate. Secure.*  
 > **Author & Architect:** **ISHA SONARIA**  
-> **Organization:** **Isha Sonaria Security Tools**
+> **Organization:** **Isha Sonaria Security Tools**  
+> **Interface:** 100% Terminal CLI Only (No Web Server, No Browser, No GUI)
 
 ---
 
 ## 1. Project Introduction
 
-**PathHawk** is a professional, high-performance, command-line web asset discovery and reconnaissance utility architected from the ground up by **ISHA SONARIA**. Engineered for security auditors, penetration testers, and DevSecOps practitioners performing authorized evaluations, PathHawk provides an independent, modular alternative to legacy brute-forcing utilities.
+**PathHawk** is a dedicated, 100% CLI-only web asset discovery and reconnaissance tool built from the ground up by **ISHA SONARIA**. Engineered specifically for security professionals, penetration testers, and security researchers operating on **Kali Linux, Debian, and Ubuntu**, PathHawk operates entirely inside the terminal without any web server, frontend dependencies, or browser requirements.
 
-PathHawk features a terminal-optimized design with green-and-cyan telemetry, multi-threaded request multiplexing, granular HTTP/size filters, depth-bounded recursive scanning, DNS subdomain inventory discovery, and multi-format reporting (JSON, CSV, and interactive HTML dashboards).
+PathHawk provides high-speed multi-threaded directory enumeration, file discovery with extension permutations, DNS record lookups, subdomain mapping, controlled recursive crawling, and offline audit report exports (JSON, CSV, and standalone HTML files).
 
 ---
 
-## 2. Key Features
+## 2. Core Features & Capabilities
+
+- **100% Command-Line Interface**:
+  - Pure terminal execution using Python, `typer`, `rich`, `httpx`, and `dnspython`.
+  - Zero browser dependencies, no Node.js/npm runtimes, no local web dashboards.
 
 - **Web Directory Enumeration (`pathhawk dir`)**:
-  - Discover hidden directories, routes, and API endpoints.
-  - Custom or baseline wordlists with deduplication and comment filtering.
-  - Multi-status filtering (`--status 200,301,403`) and code exclusions (`--exclude-status 404,500`).
+  - Discover hidden directories and web routes using custom or built-in wordlists.
+  - Filter by HTTP status codes (`-s 200,301,403`) and exclude noise codes (`-b 404,500`).
   - Response size filtering and size exclusion (`--exclude-size 0,42`).
   - Custom HTTP request methods (`GET`, `HEAD`, `POST`, `OPTIONS`).
-  - Follow or report redirect destinations.
+  - Follow or report redirect destinations (`-r`).
 
 - **Web File Enumeration (`pathhawk file`)**:
-  - Discover exposed sensitive files across custom extensions (`-x php,html,txt,json,js,bak`).
-  - Intelligent extension permutations and duplicate URL elimination.
-  - Extracts and displays HTML `<title>` tags for immediate situational context.
+  - Discover sensitive or exposed files with custom extensions (`-x php,html,txt,json,js,bak`).
+  - Automatic deduplication and intelligent file extension permutations.
+  - Extracts HTML page `<title>` for fast visual identification.
 
-- **DNS & Subdomain Inventory (`pathhawk dns`)**:
-  - DNS-based subdomain discovery utilizing `dnspython`.
-  - Resolves A and CNAME records concurrently.
-  - Export resolved infrastructure targets directly to audit reports.
+- **DNS Reconnaissance & Subdomains (`pathhawk dns`)**:
+  - Apex record queries: `A`, `AAAA`, `MX`, `NS`, `TXT`, `CNAME`, `SOA`.
+  - Concurrent subdomain enumeration with custom or baseline dictionary wordlists.
 
-- **Controlled Recursive Discovery (`pathhawk scan`)**:
-  - Depth-bounded recursive crawler (`--depth N`).
-  - Path memoization prevents circular scans and duplicate requests.
-  - Safe recursion avoiding infinite directory loops.
+- **Multi-Stage Combined Scan (`pathhawk scan`)**:
+  - Executes directory enumeration, file discovery, and controlled recursion in a single pass.
+  - Configurable maximum recursion depth (`--depth N`).
+  - Visited-route memoization prevents infinite loops and circular requests.
 
-- **Multi-Format Audit Reporting (`pathhawk report`)**:
-  - **JSON**: Machine-parsable output for automated CI/CD security pipelines.
-  - **CSV**: Spreadsheet-ready table for compliance documentation.
-  - **HTML**: Standalone, dark-themed responsive executive dashboard with status code metrics and clickable assets.
+- **Offline Audit Reporting (`pathhawk report`)**:
+  - Generates offline JSON, CSV, or standalone HTML reports directly to the disk without launching any browser or server.
+  - Reports include target information, configuration, timestamp, findings, response sizes, and latencies.
 
-- **Responsible-Use Safeguards**:
-  - Requires `--lab-mode` to run scans against local/private network addresses (localhost, RFC1918).
-  - Requires `--allow-public` confirmation for scans targeting public internet domains.
-  - Configurable rate limiting (`--delay`) and connection concurrency (`--threads`).
+- **Responsible Security Safeguards**:
+  - Refuses private/loopback targets (`localhost`, `127.0.0.1`, RFC1918) unless `--lab-mode` is explicitly provided.
+  - Requires `--allow-public` confirmation for public internet targets.
+  - Safe concurrency defaults (`--threads`) and rate-limiting delays (`--delay`).
 
 ---
 
-## 3. Installation Guide
+## 3. Installation Guide (Kali Linux / Debian / Ubuntu)
 
-### Kali Linux & Debian / Ubuntu
-
-#### Option A: Quick Global Installation (Recommended)
+### Quick Automated Installation
 
 ```bash
-# Clone the repository
 git clone https://github.com/ishasonaria/pathhawk.git
 cd pathhawk
+chmod +x install.sh
+./install.sh
+```
 
-# Install required system packages
-sudo apt update && sudo apt install -y python3 python3-pip
+The installer verifies Python 3.10+, provisions an isolated virtual environment (`.venv`) complying with Kali Linux PEP 668 guidelines, installs all dependencies, and links the `pathhawk` executable into `~/.local/bin/`.
 
-# Install PathHawk
+### Manual Virtual Environment Setup
+
+```bash
+# 1. Ensure Python 3.10+ and venv are installed
+sudo apt update && sudo apt install -y python3 python3-venv python3-pip
+
+# 2. Create and activate virtual environment
+python3 -m venv .venv
+source .venv/bin/activate
+
+# 3. Install dependencies and PathHawk
+pip install --upgrade pip
+pip install -r requirements.txt
 pip install .
 
-# Verify installation
+# 4. Verify installation
 pathhawk --version
 pathhawk --help
-```
-
-#### Option B: Virtual Environment Setup (Isolated)
-
-```bash
-# Clone the repository
-git clone https://github.com/ishasonaria/pathhawk.git
-cd pathhawk
-
-# Create and activate virtual environment
-python3 -m venv venv
-source venv/bin/activate
-
-# Install dependencies and package
-pip install -r requirements.txt
-pip install -e .
-
-# Run PathHawk inside virtualenv
-pathhawk --help
-```
-
----
-
-### Windows (PowerShell)
-
-```powershell
-# Clone the repository
-git clone https://github.com/ishasonaria/pathhawk.git
-cd pathhawk
-
-# Create virtual environment
-python -m venv venv
-.\venv\Scripts\Activate.ps1
-
-# Install requirements and package
-pip install -r requirements.txt
-pip install -e .
-
-# Verify
-pathhawk --version
 ```
 
 ---
 
 ## 4. CLI Command Reference & Examples
 
+### General Options
+
+```bash
+# Display version and developer information
+pathhawk --version
+
+# Display main help menu
+pathhawk --help
+```
+
 ### A. Directory Enumeration (`pathhawk dir`)
 
 ```bash
-# Scan a local lab target with default wordlist
+# Scan a local lab web server
 pathhawk dir -u http://127.0.0.1:8000 --lab-mode
 
-# Scan with custom wordlist and filter status codes
+# Scan with custom wordlist and status code filter
 pathhawk dir -u http://127.0.0.1:8000 -w wordlists/common_dirs.txt -s 200,301,403 --lab-mode
 
-# Scan authorized public domain with custom threads and rate limit delay
-pathhawk dir -u https://example.com --allow-public -t 20 --delay 0.1 -o results.json
+# Scan an authorized public domain with rate limiting and thread control
+pathhawk dir -u https://target.example --allow-public -t 20 --delay 0.1 -o scan_dirs.json
 ```
 
 ### B. File Discovery (`pathhawk file`)
@@ -151,112 +135,129 @@ pathhawk dir -u https://example.com --allow-public -t 20 --delay 0.1 -o results.
 # Search for files with specific extensions
 pathhawk file -u http://127.0.0.1:8000 -w wordlists/common_files.txt -x php,txt,html,json --lab-mode
 
-# Export findings to an HTML report
-pathhawk file -u http://127.0.0.1:8000 -x conf,env,bak,sql -o audit_files.html --format html --lab-mode
+# Filter out empty responses and export to CSV
+pathhawk file -u http://127.0.0.1:8000 -x env,bak,conf,sql -o discovered_files.csv --format csv --lab-mode
 ```
 
-### C. DNS & Subdomain Discovery (`pathhawk dns`)
+### C. DNS Reconnaissance (`pathhawk dns`)
 
 ```bash
-# Discover active subdomains using the included wordlist
-pathhawk dns -d example.local -w wordlists/subdomains.txt -t 25
+# Retrieve common DNS records (A, AAAA, MX, NS, TXT, CNAME) and discover subdomains
+pathhawk dns -d example.local -w wordlists/subdomains.txt
 
-# Save resolved subdomains to CSV
-pathhawk dns -d example.local -o subdomains.csv --format csv
+# Fast DNS inventory with 30 threads
+pathhawk dns -d example.local -t 30 -o subdomains.json
 ```
 
-### D. Controlled Recursive Discovery (`pathhawk scan`)
+### D. Comprehensive Combined Scan (`pathhawk scan`)
 
 ```bash
-# Perform recursive scan up to 2 levels deep
-pathhawk scan -u http://127.0.0.1:8000 -w wordlists/common_dirs.txt --depth 2 --lab-mode
-
-# Export full recursive findings to JSON
-pathhawk scan -u http://127.0.0.1:8000 --depth 3 -o recursive_audit.json --lab-mode
+# Run directory and file discovery with controlled recursion depth
+pathhawk scan -u http://127.0.0.1:8000 --depth 2 -x php,txt,html --lab-mode -o combined.json
 ```
 
 ### E. Standalone Report Conversion (`pathhawk report`)
 
 ```bash
-# Convert existing JSON scan report to an interactive HTML report
-pathhawk report -i results.json -f html -o audit_report.html
+# Convert a raw JSON scan result to a standalone offline HTML audit report
+pathhawk report -i results.json --format html -o audit_report.html
 
-# Convert JSON scan report to CSV
-pathhawk report -i results.json -f csv -o audit_report.csv
+# Convert JSON findings to CSV for spreadsheet review
+pathhawk report -i results.json --format csv -o audit_report.csv
 ```
 
 ---
 
-## 5. Architecture & Project Layout
+## 5. Project Architecture
 
 ```text
 pathhawk/
-├── __init__.py           # Package metadata and version info
-├── cli.py                # Typer CLI application and command routers
-├── banner.py             # ASCII banner & developer attribution
-├── config.py             # ScanConfig and ScanResult dataclasses
-├── core/
-│   ├── engine.py         # ThreadPoolExecutor concurrency manager
-│   ├── requester.py      # HTTPX client with retries and timing
-│   ├── validator.py      # URL sanitation and responsible-use verification
-│   └── filters.py        # Status code and response size filters
-├── modules/
-│   ├── directory.py      # Directory discovery implementation
-│   ├── file_enum.py      # File & extension permutations
-│   ├── dns_enum.py       # dnspython DNS resolver
-│   └── recursive.py      # Controlled recursive scanner
-├── reporting/
-│   ├── json_report.py    # Structured JSON exporter
-│   ├── csv_report.py     # Spreadsheet CSV exporter
-│   └── html_report.py    # Standalone HTML audit report generator
-└── utils/
-    ├── formatter.py      # Terminal formatting & Rich color scheme
-    ├── logger.py         # Logging helper utilities
-    └── wordlists.py      # Wordlist loader & default wordlists
+├── bin/
+│   └── pathhawk          # Direct executable launcher
+├── pathhawk/
+│   ├── __init__.py       # Package metadata and version info
+│   ├── banner.py         # Terminal banner & developer attribution
+│   ├── cli.py            # Typer CLI application and command routers
+│   ├── config.py         # ScanConfig and ScanResult dataclasses
+│   ├── core/
+│   │   ├── engine.py     # ThreadPoolExecutor concurrency manager
+│   │   ├── requester.py  # HTTPX client with retries and timing
+│   │   ├── validator.py  # URL sanitation and target guardrails
+│   │   └── filters.py    # Status code and response size filters
+│   ├── modules/
+│   │   ├── directory.py  # Directory discovery implementation
+│   │   ├── file_enum.py  # File & extension permutations
+│   │   ├── dns_enum.py   # DNS record and subdomain enumerator
+│   │   ├── recursive.py  # Depth-controlled recursive crawler
+│   │   └── combined.py   # Multi-stage combined discovery coordinator
+│   ├── reporting/
+│   │   ├── json_report.py # Structured JSON exporter
+│   │   ├── csv_report.py  # Spreadsheet CSV exporter
+│   │   └── html_report.py # Standalone offline HTML audit report generator
+│   └── utils/
+│       ├── formatter.py  # Terminal formatting & Rich color scheme
+│       ├── logger.py     # Logging helpers
+│       └── wordlists.py  # Wordlist loader & built-in dictionaries
+├── wordlists/            # Curated default dictionaries
+├── tests/                # Automated pytest suite (unit and live socket tests)
+├── docs/                 # Documentation and sample offline report templates
+├── install.sh            # Automated Kali/Debian/Ubuntu installation script
+├── uninstall.sh          # Clean uninstaller script
+├── requirements.txt      # Python dependencies
+├── pyproject.toml        # PEP 517 build configuration
+├── LICENSE               # MIT License
+└── README.md             # Complete user and technical documentation
 ```
 
 ---
 
-## 6. Running the Test Suite
+## 6. Running the Automated Test Suite
 
-PathHawk includes comprehensive unit and integration tests (including tests executing against local socket test servers):
+PathHawk includes 21 comprehensive automated tests covering unit logic, CLI invocations, error handling, safety checks, and integration against live local HTTP socket test servers:
 
 ```bash
-# Run all tests with pytest
+# Run tests with pytest
 python3 -m pytest tests/ -v
 ```
 
-All 12 automated test cases verify:
-- URL normalization and scheme handling
-- Target authorization safeguards (RFC1918 / localhost / public gates)
-- Status code and byte size filters
-- Wordlist parsing and deduplication
-- Live server directory enumeration
-- Live server file discovery and extension matching
-- Live server recursive path discovery
-- JSON, CSV, and HTML report integrity
+All 21 test cases verify:
+- CLI flags (`--version`, `--help`, missing arguments)
+- Target safety guardrails (`--lab-mode` and `--allow-public`)
+- Missing wordlist error handling
+- URL normalization and RFC-compliant domain validation
+- Response status code and size filtering
+- Live mock server directory discovery
+- Live mock server file and extension permutations
+- Live mock server recursive traversal
+- DNS record extraction and mock lookup
+- JSON, CSV, and offline HTML report generation
 
 ---
 
-## 7. Security and Responsible-Use Disclaimer
+## 7. Troubleshooting
 
-**PathHawk** is developed by **ISHA SONARIA** strictly for authorized defensive security assessments, research, educational lab training, and infrastructure owned by the operator or assessed with explicit written authorization.
-
-- **Non-Aggressive Design**: PathHawk does not contain exploit modules, brute-force credential stuffing, authentication bypasses, or denial-of-service components.
-- **Fail-Safe Target Guardrails**: Localhost and private subnet assessments require the `--lab-mode` flag. Public domain assessments require the `--allow-public` flag to affirm authorized testing.
-- **Operator Liability**: The author and maintainers assume no liability for misuse, unauthorized testing, or violations of applicable local or international cybersecurity laws.
+- **`externally-managed-environment` on Kali Linux**:  
+  Kali Linux follows PEP 668. Always install PathHawk inside a virtual environment using `./install.sh` or `python3 -m venv .venv && source .venv/bin/activate`.
+- **Target blocked: `private/loopback address space`**:  
+  When testing local containers, VMs, or localhost, supply the `--lab-mode` flag.
+- **Target blocked: `public Internet system`**:  
+  When assessing an authorized public host, supply the `--allow-public` flag.
 
 ---
 
 ## 8. Uninstallation
 
+To remove PathHawk and its virtual environment cleanly without affecting generated reports or custom wordlists:
+
 ```bash
-pip uninstall pathhawk -y
+chmod +x uninstall.sh
+./uninstall.sh
 ```
 
 ---
 
-## 9. License
+## 9. License & Credits
 
-This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.  
-Copyright (c) 2026 **ISHA SONARIA** (Isha Sonaria Security Tools).
+Developed by **ISHA SONARIA**  
+Organization: **Isha Sonaria Security Tools**  
+Licensed under the **MIT License**. See [LICENSE](LICENSE) for details.

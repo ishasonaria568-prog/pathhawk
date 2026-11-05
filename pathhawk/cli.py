@@ -15,6 +15,7 @@ from pathhawk import __author__, __organization__, __tagline__, __title__, __ver
 from pathhawk.banner import display_banner, display_disclaimer
 from pathhawk.config import ScanConfig, ScanResult
 from pathhawk.core.validator import validate_domain, validate_target
+from pathhawk.modules.combined import CombinedScanner
 from pathhawk.modules.directory import DirectoryEnumerator
 from pathhawk.modules.dns_enum import DNSEnumerator
 from pathhawk.modules.file_enum import FileEnumerator
@@ -253,12 +254,14 @@ def dns_cmd(
     export_report_if_requested(config, results)
 
 
-@app.command(name="scan", help="Run combined and recursive content discovery.")
+@app.command(name="scan", help="Run comprehensive combined discovery (directories, files, and recursion).")
 def scan_cmd(
-    url: str = typer.Option(..., "-u", "--url", help="Target URL"),
-    wordlist: Optional[Path] = typer.Option(None, "-w", "--wordlist", help="Wordlist for recursive directory discovery"),
-    depth: int = typer.Option(2, "--depth", help="Maximum recursion depth (default: 2)"),
+    url: str = typer.Option(..., "-u", "--url", help="Target URL (e.g. https://lab.target.local)"),
+    wordlist: Optional[Path] = typer.Option(None, "-w", "--wordlist", help="Wordlist for directory and file discovery"),
+    extensions: str = typer.Option("php,txt,html,json", "-x", "--extensions", help="Comma-separated file extensions to test"),
+    depth: int = typer.Option(1, "--depth", help="Maximum recursion depth (default: 1)"),
     status: Optional[str] = typer.Option(None, "-s", "--status", help="Comma-separated status codes to show"),
+    exclude_status: Optional[str] = typer.Option(None, "-b", "--exclude-status", help="Comma-separated status codes to exclude"),
     threads: int = typer.Option(15, "-t", "--threads", help="Worker threads"),
     timeout: float = typer.Option(8.0, "--timeout", help="Timeout per request"),
     output: Optional[Path] = typer.Option(None, "-o", "--output", help="Output report file path"),
@@ -276,11 +279,15 @@ def scan_cmd(
         log_error(f"Target validation failed: {validated_or_err}")
         raise typer.Exit(code=1)
 
+    ext_list = [e.strip().lstrip(".") for e in extensions.split(",") if e.strip()]
+
     config = ScanConfig(
         target_url=validated_or_err,
         wordlist_path=wordlist,
+        extensions=ext_list,
         max_depth=depth,
         status_codes=parse_status_codes(status),
+        excluded_status_codes=parse_status_codes(exclude_status) if exclude_status else set(),
         threads=threads,
         timeout=timeout,
         output_file=output,
@@ -292,15 +299,15 @@ def scan_cmd(
 
     if not silent:
         log_info(f"Target URL: [bold white]{config.target_url}[/bold white]")
-        log_info(f"Max recursion depth: [cyan]{depth}[/cyan]")
+        log_info(f"Scan Depth: [cyan]{depth}[/cyan] | Extensions: [cyan]{', '.join(ext_list)}[/cyan]")
         console.print()
 
-    scanner = RecursiveScanner(config)
+    scanner = CombinedScanner(config)
     results = scanner.run()
 
     if not silent:
         console.print()
-        log_success(f"Recursive scan completed. Found [bold bright_green]{len(results)}[/bold bright_green] total assets.")
+        log_success(f"Combined discovery completed. Found [bold bright_green]{len(results)}[/bold bright_green] total assets.")
 
     export_report_if_requested(config, results)
 
