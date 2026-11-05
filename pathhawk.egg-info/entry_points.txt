@@ -1,0 +1,2 @@
+[console_scripts]
+pathhawk = pathhawk.cli:app

@@ -1,0 +1,6 @@
+{
+  "name": "PathHawk Web Asset Discovery",
+  "description": "PathHawk - Advanced CLI-based web content discovery, asset enumeration, and reconnaissance tool developed by ISHA SONARIA.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
